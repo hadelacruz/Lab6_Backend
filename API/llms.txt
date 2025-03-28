@@ -1,0 +1,95 @@
+# API de Partidos de Fútbol
+
+## Endpoints disponibles:
+
+1. **Obtener todos los partidos**
+   - Método: `GET`
+   - URL: `/api/matches`
+   - Descripción: Devuelve la lista de todos los partidos registrados.
+
+2. **Obtener un partido por ID**
+   - Método: `GET`
+   - URL: `/api/matches/:id`
+   - Descripción: Obtiene la información de un partido en específico.
+
+3. **Crear un nuevo partido**
+   - Método: `POST`
+   - URL: `/api/matches`
+   - Cuerpo (JSON):
+     ```json
+     {
+       "homeTeam": "Equipo A",
+       "awayTeam": "Equipo B",
+       "matchDate": "2025-04-10"
+     }
+     ```
+   - Descripción: Crea un nuevo partido en la base de datos.
+
+4. **Actualizar un partido**
+   - Método: `PUT`
+   - URL: `/api/matches/:id`
+   - Cuerpo (JSON):
+     ```json
+     {
+       "homeTeam": "Nuevo Equipo A",
+       "awayTeam": "Nuevo Equipo B",
+       "matchDate": "2025-05-01"
+     }
+     ```
+   - Descripción: Actualiza la información de un partido existente.
+
+5. **Eliminar un partido**
+   - Método: `DELETE`
+   - URL: `/api/matches/:id`
+   - Descripción: Elimina un partido de la base de datos.
+
+## Endpoints adicionales (PATCH):
+
+6. **Actualizar goles**
+   - Método: `PATCH`
+   - URL: `/api/matches/:id/goals`
+   - Cuerpo (JSON):
+     ```json
+     {
+       "goals": 3
+     }
+     ```
+   - Descripción: Actualiza la cantidad de goles anotados en un partido.
+
+7. **Actualizar tarjetas amarillas**
+   - Método: `PATCH`
+   - URL: `/api/matches/:id/yellowcards`
+   - Cuerpo (JSON):
+     ```json
+     {
+       "yellowCards": 2
+     }
+     ```
+   - Descripción: Actualiza la cantidad de tarjetas amarillas en un partido.
+
+8. **Actualizar tarjetas rojas**
+   - Método: `PATCH`
+   - URL: `/api/matches/:id/redcards`
+   - Cuerpo (JSON):
+     ```json
+     {
+       "redCards": 1
+     }
+     ```
+   - Descripción: Actualiza la cantidad de tarjetas rojas en un partido.
+
+9. **Registrar tiempo extra**
+   - Método: `PATCH`
+   - URL: `/api/matches/:id/extratime`
+   - Cuerpo (JSON):
+     ```json
+     {
+       "extraTime": 5
+     }
+     ```
+   - Descripción: Agrega minutos de tiempo extra a un partido.
+
+## Configuración:
+- La API corre en el puerto `8080`.
+- Es necesario una base de datos PostgreSQL con la tabla `matches`.
+- comando para levantar el proyecto: docker-compose up --build

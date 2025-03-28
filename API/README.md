@@ -37,5 +37,20 @@
 
 ### 1. Clona el repositorio
 
+
 ```bash
 git clone https://github.com/hadelacruz/Lab6_Backend.git
+
+
+### 2. Levantar el proyecto
+
+```bash
+
+docker-compose up --build
+
+
+---
+
+## 📡 Enlace a la colección de Postman
+
+Puedes acceder a la colección de Postman para probar la API [aquí](https://laligatracker.postman.co/workspace/My-Workspace~7097b7bc-952d-4d7c-8a5f-3f6153627853/collection/30659003-62de1276-1eb1-469b-a702-0093d6d0a4f1?action=share&creator=30659003).
