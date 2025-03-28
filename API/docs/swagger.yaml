@@ -1,0 +1,332 @@
+basePath: /api
+definitions:
+  main.Match:
+    properties:
+      awayTeam:
+        type: string
+      extraTime:
+        type: integer
+      goals:
+        type: integer
+      homeTeam:
+        type: string
+      id:
+        type: integer
+      matchDate:
+        type: string
+      redCards:
+        type: integer
+      yellowCards:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API para gestionar partidos de fútbol con estadísticas.
+  title: Matches API
+  version: "1.0"
+paths:
+  /matches:
+    get:
+      description: Devuelve un listado con todos los partidos registrados
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Match'
+            type: array
+      summary: Obtener todos los partidos
+      tags:
+      - Matches
+    post:
+      consumes:
+      - application/json
+      description: Registra un nuevo partido con los datos proporcionados
+      parameters:
+      - description: Datos del partido
+        in: body
+        name: partido
+        required: true
+        schema:
+          $ref: '#/definitions/main.Match'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crear un nuevo partido
+      tags:
+      - Matches
+  /matches/{id}:
+    delete:
+      description: Elimina un partido de la base de datos
+      parameters:
+      - description: ID del partido
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Eliminar un partido
+      tags:
+      - Matches
+    get:
+      description: Devuelve la información de un partido específico
+      parameters:
+      - description: ID del partido
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Match'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener un partido por ID
+      tags:
+      - Matches
+    put:
+      consumes:
+      - application/json
+      description: Modifica los datos de un partido existente
+      parameters:
+      - description: ID del partido
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos actualizados del partido
+        in: body
+        name: partido
+        required: true
+        schema:
+          $ref: '#/definitions/main.Match'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar un partido
+      tags:
+      - Matches
+  /matches/{id}/extratime:
+    patch:
+      consumes:
+      - application/json
+      description: Modifica la cantidad de tiempo extra en minutos en un partido
+      parameters:
+      - description: ID del partido
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Minutos de tiempo extra
+        in: body
+        name: extraTime
+        required: true
+        schema:
+          type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Registrar tiempo extra
+      tags:
+      - Matches
+  /matches/{id}/goals:
+    patch:
+      consumes:
+      - application/json
+      description: Modifica la cantidad de goles registrados en un partido
+      parameters:
+      - description: ID del partido
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Cantidad de goles
+        in: body
+        name: goles
+        required: true
+        schema:
+          type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar goles de un partido
+      tags:
+      - Matches
+  /matches/{id}/redcards:
+    patch:
+      consumes:
+      - application/json
+      description: Modifica la cantidad de tarjetas rojas en un partido
+      parameters:
+      - description: ID del partido
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Cantidad de tarjetas rojas
+        in: body
+        name: redCards
+        required: true
+        schema:
+          type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar tarjetas rojas
+      tags:
+      - Matches
+  /matches/{id}/yellowcards:
+    patch:
+      consumes:
+      - application/json
+      description: Modifica la cantidad de tarjetas amarillas en un partido
+      parameters:
+      - description: ID del partido
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Cantidad de tarjetas amarillas
+        in: body
+        name: yellowCards
+        required: true
+        schema:
+          type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar tarjetas amarillas
+      tags:
+      - Matches
+swagger: "2.0"
