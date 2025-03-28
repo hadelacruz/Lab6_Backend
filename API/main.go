@@ -1,146 +1,171 @@
 package main
 
 import (
-	"database/sql"
-	"encoding/json"
-	"fmt"
-	"log"
-	"net/http"
-	"github.com/gorilla/mux"
-	_ "github.com/lib/pq"
+    "github.com/gin-contrib/cors"
+    "github.com/gin-gonic/gin"
+    "gorm.io/driver/postgres"
+    "gorm.io/gorm"
+    "net/http"
+    "time"
 )
 
-var db *sql.DB
+var db *gorm.DB
 
-// Estructura de datos para los partidos
+// Definición de la estructura de cada partido
 type Match struct {
-	ID    int    `json:"id"`
-	Team1 string `json:"team1"`
-	Team2 string `json:"team2"`
-	Score string `json:"score"`
+    ID        uint      `json:"id" gorm:"primaryKey;autoIncrement"`
+    HomeTeam  string    `json:"homeTeam" gorm:"type:varchar(255);not null"`
+    AwayTeam  string    `json:"awayTeam" gorm:"type:varchar(255);not null"`
+    MatchDate time.Time `json:"matchDate" gorm:"type:date;not null"`
 }
 
-// Conexión a la base de datos
-func initDB() {
-	var err error
-	// Conectar a la base de datos PostgreSQL
-	connStr := "postgres://postgres:password@db:5432/matches?sslmode=disable"
-	db, err = sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-// Manejo de errores para las consultas
-func checkErr(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-// Endpoint para obtener todos los partidos
-func getMatches(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, team1, team2, score FROM matches")
-	checkErr(err)
-	defer rows.Close()
-
-	var matches []Match
-	for rows.Next() {
-		var match Match
-		if err := rows.Scan(&match.ID, &match.Team1, &match.Team2, &match.Score); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		matches = append(matches, match)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(matches)
-}
-
-// Endpoint para obtener un partido por ID
-func getMatchByID(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
-	var match Match
-	err := db.QueryRow("SELECT id, team1, team2, score FROM matches WHERE id = $1", id).Scan(&match.ID, &match.Team1, &match.Team2, &match.Score)
-	if err != nil {
-		http.Error(w, "Match not found", http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(match)
-}
-
-// Endpoint para actualizar un partido existente
-func updateMatch(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
-	var match Match
-	if err := json.NewDecoder(r.Body).Decode(&match); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	_, err := db.Exec("UPDATE matches SET team1 = $1, team2 = $2, score = $3 WHERE id = $4", match.Team1, match.Team2, match.Score, id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
-}
-
-// Endpoint para crear un nuevo partido
-func createMatch(w http.ResponseWriter, r *http.Request) {
-	var match Match
-	if err := json.NewDecoder(r.Body).Decode(&match); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	err := db.QueryRow("INSERT INTO matches (team1, team2, score) VALUES ($1, $2, $3) RETURNING id", match.Team1, match.Team2, match.Score).Scan(&match.ID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(match)
-}
-
-// Endpoint para eliminar un partido
-func deleteMatch(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
-	_, err := db.Exec("DELETE FROM matches WHERE id = $1", id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
-}
-
-// Configuración del servidor y rutas
 func main() {
-	// Inicializar la base de datos
-	initDB()
-	defer db.Close()
+    dsn := "host=db user=postgres password=postgres dbname=matches port=5432 sslmode=disable"
+    database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+    if err != nil {
+        panic("No se puede conectar a la base de datos")
+    }
+    db = database
+    db.AutoMigrate(&Match{})
 
-	// Crear el enrutador
-	router := mux.NewRouter()
-	router.HandleFunc("/api/matches", getMatches).Methods("GET")
-	router.HandleFunc("/api/matches/{id}", getMatchByID).Methods("GET")
-	router.HandleFunc("/api/matches/{id}", updateMatch).Methods("PUT")
-	router.HandleFunc("/api/matches", createMatch).Methods("POST")
-	router.HandleFunc("/api/matches/{id}", deleteMatch).Methods("DELETE")
+    r := gin.Default()
 
-	// Iniciar el servidor
-	fmt.Println("API escuchando en puerto 8080...")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	//CORS
+    r.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"*"},
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+    }))
+
+    // rutas
+    r.GET("/api/matches", GetMatches)
+    r.GET("/api/matches/:id", GetMatch)
+    r.POST("/api/matches", CreateMatch)
+    r.PUT("/api/matches/:id", UpdateMatch)
+    r.DELETE("/api/matches/:id", DeleteMatch)
+
+    r.Run(":8080")
+}
+
+//http://localhost:8080/api/matches
+// Obtener todos los partidos
+func GetMatches(c *gin.Context) {
+    var partidos []Match
+    resultado := db.Find(&partidos)
+    if resultado.Error != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener los partidos"})
+        return
+    }
+    c.JSON(http.StatusOK, partidos)
+}
+
+///http://localhost:8080/api/matches/:id
+// Obtener un partido por ID
+func GetMatch(c *gin.Context) {
+    var partido Match
+    id := c.Param("id")
+    
+    resultado := db.First(&partido, "id = ?", id)
+    if resultado.Error != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Partido no encontrado"})
+        return
+    }
+    c.JSON(http.StatusOK, partido)
+}
+
+//http://localhost:8080/api/matches
+// Crear un nuevo partido
+func CreateMatch(c *gin.Context) {
+    var entrada struct {
+        HomeTeam  string `json:"homeTeam"`
+        AwayTeam  string `json:"awayTeam"`
+        MatchDate string `json:"matchDate"`
+    }
+    
+    if err := c.ShouldBindJSON(&entrada); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Datos inválidos"})
+        return
+    }
+    
+    if entrada.HomeTeam == "" || entrada.AwayTeam == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Los equipos no pueden estar vacíos"})
+        return
+    }
+        // Convertir string a time.Time
+
+    fecha, err := time.Parse("2006-01-02", entrada.MatchDate)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Formato de fecha inválido. Use YYYY-MM-DD"})
+        return
+    }
+    
+    partido := Match{
+        HomeTeam:  entrada.HomeTeam,
+        AwayTeam:  entrada.AwayTeam,
+        MatchDate: fecha,
+    }
+    
+    if resultado := db.Create(&partido); resultado.Error != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo registrar el partido"})
+        return
+    }
+    
+    c.JSON(http.StatusCreated, gin.H{"mensaje": "Partido creado exitosamente", "partido": partido})
+}
+
+//http://localhost:8080/api/matches/:id
+// Actualizar un partido
+func UpdateMatch(c *gin.Context) {
+    var partido Match
+    id := c.Param("id")
+    
+    if resultado := db.First(&partido, "id = ?", id); resultado.Error != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Partido no encontrado"})
+        return
+    }
+    
+    var entrada struct {
+        HomeTeam  string `json:"homeTeam"`
+        AwayTeam  string `json:"awayTeam"`
+        MatchDate string `json:"matchDate"`
+    }
+    
+    if err := c.ShouldBindJSON(&entrada); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Datos inválidos"})
+        return
+    }
+    
+    fecha, err := time.Parse("2006-01-02", entrada.MatchDate)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Formato de fecha inválido. Use YYYY-MM-DD"})
+        return
+    }
+    
+    actualizar := map[string]interface{}{
+        "HomeTeam":  entrada.HomeTeam,
+        "AwayTeam":  entrada.AwayTeam,
+        "MatchDate": fecha,
+    }
+    
+    if resultado := db.Model(&partido).Updates(actualizar); resultado.Error != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo actualizar el partido"})
+        return
+    }
+    
+    c.JSON(http.StatusOK, gin.H{"mensaje": "Partido actualizado correctamente", "partido": partido})
+}
+
+//http://localhost:8080/api/matches/:id
+// Eliminar un partido
+func DeleteMatch(c *gin.Context) {
+    id := c.Param("id")
+    
+    if resultado := db.Delete(&Match{}, "id = ?", id); resultado.Error != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo eliminar el partido"})
+        return
+    }
+    
+    c.JSON(http.StatusOK, gin.H{"mensaje": "Partido eliminado correctamente"})
 }

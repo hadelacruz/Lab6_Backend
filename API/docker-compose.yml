@@ -1,35 +1,41 @@
+version: '3.8'
 services:
   db:
-    image: postgres:13
+    image: postgres:15
+    restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: yourpassword
-      POSTGRES_DB: yourdatabase
-    networks:
-      - backend
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: matches
     ports:
       - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
+    networks:
+      - app_network
 
   backend:
-    build:
-      context: .
-    depends_on:
-      - db
+    build: .
     ports:
       - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
-      DB_HOST: db
-      DB_PORT: 5433
-      DB_USER: postgres
-      DB_PASSWORD: yourpassword
-      DB_NAME: yourdatabase
-    networks:
-      - backend
-    command: sh /app/start.sh
+      DATABASE_URL: "host=db user=postgres password=postgres dbname=matches port=5432 sslmode=disable"
     volumes:
       - .:/app
-    restart: always
+    command: ["sh", "start.sh"]
+    networks:
+      - app_network
+
+volumes:
+  db_data:
 
 networks:
-  backend:
+  app_network:
     driver: bridge
