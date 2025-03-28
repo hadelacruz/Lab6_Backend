@@ -2,9 +2,9 @@
 
 ⚽ **La Liga Tracker** es una API construida utilizando **Go** y **PostgreSQL** que permite gestionar partidos de fútbol.
 
-![Banner](img/Liga1.jpeg)
-![Banner](img/Liga2.jpeg)
-![Banner](img/Liga3.jpeg)
+![Banner](img/Liga1.png)
+![Banner](img/Liga2.png)
+![Banner](img/Liga3.png)
 
 ---
 
