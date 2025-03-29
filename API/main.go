@@ -8,7 +8,9 @@ import (
     "net/http"
     "time"
 	"github.com/swaggo/gin-swagger"
-    "github.com/swaggo/gin-swagger/swaggerFiles"
+    //"github.com/swaggo/gin-swagger/swaggerFiles"
+    "github.com/swaggo/files"
+
 )
 
 var db *gorm.DB
@@ -40,7 +42,9 @@ func main() {
     db.AutoMigrate(&Match{})
 
     r := gin.Default()
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(files.Handler))
+	//r.GET("/swagger/*any", ginSwagger.WrapHandler(files.Handler))
+    r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 
 	//CORS
     r.Use(cors.New(cors.Config{

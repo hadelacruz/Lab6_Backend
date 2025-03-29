@@ -30,6 +30,11 @@
 - **Ver Partidos**: Consulta todos los partidos o busca un partido específico por su ID.
 - **Actualizar Partido**: Modifica la información de un partido existente.
 - **Eliminar Partido**: Elimina un partido de la base de datos.
+- **Aztualizar Goles**: Actualizar los goles de un partido de la base de datos.
+- **Aztualizar Tarjetas Amarillas**: Actualizar las tarjetas amarillas de un partido de la base de datos.
+- **Aztualizar Tarjetas Rojas**: Actualizar las tarjetas rojas de un partido de la base de datos.
+- **Aztualizar Tiempo Extra**: Actualizar el tiempo extra de un partido de la base de datos.
+
 
 ---
 
